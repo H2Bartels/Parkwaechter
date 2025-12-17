@@ -28,8 +28,8 @@ func gefilterteFluren(
     let result =  Array(Set(
         abschaltRegeln
             .filter {
-                (gemarkung.isEmpty || String($0.gemarkung) == gemarkung) &&
-                (bezeichnung.isEmpty || $0.bezeichnung == bezeichnung)
+                (gemarkung.isEmpty || String($0.gemarkung) == gemarkung) && true
+                //(bezeichnung.isEmpty || $0.bezeichnung == bezeichnung)
             }
             .map { String($0.flur) }
     )).sorted()

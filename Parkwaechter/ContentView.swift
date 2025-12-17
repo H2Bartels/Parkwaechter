@@ -15,8 +15,7 @@ struct ContentView: View {
     @State private var flurstueck = "Option 1"
     */
     @State private var kennung: [String] = []
-    @State private var endTime = Date()
-    @State private var startTime: Date = Calendar.current.date(byAdding: .hour, value: -1, to: Date())!
+    @State private var date = Date()
 
     @State private var gemarkung = ""
     @State private var flur = ""
@@ -71,7 +70,7 @@ struct ContentView: View {
                         HStack {
                             DatePicker(
                                 "",
-                                selection: $endTime,
+                                selection: $date,
                                 displayedComponents: [.date]
                             )
                             .datePickerStyle(.compact) // oder .graphical
@@ -80,20 +79,20 @@ struct ContentView: View {
                             Spacer() // schiebt den Rest nach rechts, Picker bleibt links
                         }
                     }
-                   /* GridRow{
-                            Text("Abschaltbeginn")
-                            DatePicker(
-                                "",
-                                selection: $startTime,
-                                displayedComponents: [.hourAndMinute]
-                            )
-                            .datePickerStyle(.compact)
-                            DatePicker(
-                                "Abschaltende",
-                                selection: $endTime,
-                                displayedComponents: [.hourAndMinute]
-                            )
-                    }*/
+                   GridRow{
+                       Text("Uhrzeit:")
+                           .frame(maxWidth: 100,alignment: .leading)
+                       HStack {
+                           DatePicker(
+                            "",
+                            selection: $date,
+                            displayedComponents: [.hourAndMinute]
+                           )
+                           .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
+                           
+                           Spacer() // schiebt den Rest nach rechts, Picker bleibt links
+                       }
+                    }
                 }
                 HStack{
                     Button("Hinzufügen"){
@@ -142,7 +141,7 @@ struct ContentView: View {
                             // Platzhalter für die Lampe (später)
                             Circle()
                                 .fill(kennung.contains { entry in
-                                    weaFuerKennung(entry) == wea
+                                    weaFuerKennung(entry).contains(wea)
                                 } ? Color.red : Color.green)
                                 .frame(width: 20, height: 20)
                         }
