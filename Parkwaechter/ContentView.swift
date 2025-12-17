@@ -7,16 +7,153 @@
 
 import SwiftUI
 
+
+
 struct ContentView: View {
+    /*@State private var gemarkung = "Option 1"
+    @State private var flur = "Option 1"
+    @State private var flurstueck = "Option 1"
+    */
+    @State private var kennung: [String] = []
+    @State private var endTime = Date()
+    @State private var startTime: Date = Calendar.current.date(byAdding: .hour, value: -1, to: Date())!
+
+    @State private var gemarkung = ""
+    @State private var flur = ""
+    @State private var bezeichnung = ""
+    
+    let gemarkungen = Array(Set(abschaltRegeln.map({$0.gemarkung}))).sorted()
+    let fluren = Array(Set(abschaltRegeln.map({$0.flur}))).sorted()
+    let bezeichnungen = Array(Set(abschaltRegeln.map({$0.bezeichnung}))).sorted()
+    
+
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        HStack(alignment: .top, spacing: 10){
+            VStack(alignment: .leading,spacing: 20){
+                Grid(horizontalSpacing: 15, verticalSpacing: 12) {
+                    GridRow {
+                        Text("Gemarkung:")
+                            .frame(maxWidth: 100,alignment: .leading)
+                        HStack{
+                            Picker("", selection: $gemarkung) {
+                                ForEach(gemarkungen, id: \.self) { Text($0) }
+                            }
+                            .pickerStyle(.menu)
+                            Spacer()
+                        }
+                    }
+                    GridRow {
+                        Text("Flur:")
+                            .frame(maxWidth: 100, alignment: .leading)
+                        HStack{
+                            Picker("", selection: $flur) {
+                                ForEach( gefilterteFluren(gemarkung: gemarkung, bezeichnung: bezeichnung), id: \.self) { Text($0) }
+                            }
+                            .pickerStyle(.menu)
+                            Spacer()
+                        }
+                    }
+                    GridRow {
+                        Text("Flurstück:")
+                            .frame(maxWidth: 100,alignment: .leading)
+                        HStack{
+                            Picker("", selection: $bezeichnung) {
+                                ForEach(gefilterteBezeichnungen(gemarkung: gemarkung, flur: flur), id: \.self) { Text($0) }
+                            }
+                            .pickerStyle(.menu)
+                            Spacer()
+                        }
+                    }
+                    GridRow{
+                        Text("Datum:")
+                            .frame(maxWidth: 100,alignment: .leading)
+                        HStack {
+                            DatePicker(
+                                "",
+                                selection: $endTime,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.compact) // oder .graphical
+                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
+                            
+                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
+                        }
+                    }
+                   /* GridRow{
+                            Text("Abschaltbeginn")
+                            DatePicker(
+                                "",
+                                selection: $startTime,
+                                displayedComponents: [.hourAndMinute]
+                            )
+                            .datePickerStyle(.compact)
+                            DatePicker(
+                                "Abschaltende",
+                                selection: $endTime,
+                                displayedComponents: [.hourAndMinute]
+                            )
+                    }*/
+                }
+                HStack{
+                    Button("Hinzufügen"){
+                        let current_kennung = "\(gemarkung) \(flur) \(bezeichnung)"
+                        kennung.append(current_kennung)
+                    }
+                    Button("Rückgängig"){
+                        kennung.removeLast()
+                    }
+                    .disabled(kennung.isEmpty)
+                }
+                .padding(.top,10)
+                Text("Ausgewählte Flurstücke:")
+                ScrollView{
+                    VStack(alignment: .leading, spacing: 0){
+                        ForEach(Array(kennung.enumerated()), id: \.1) { index, entry in
+                                Text(entry)
+                                    .padding(.leading, 15)
+                                    .padding(.top, index == 0 ? 5 : 0)
+                            }
+                    }
+                }
+                .frame(maxWidth: 250,maxHeight: 100, alignment: .leading)
+                .background(Color.gray.opacity(0.2))
+                .mask(Rectangle().cornerRadius(15).frame(height: 100))
+                /* VStack(alignment: .leading, spacing: 0) {
+                 ForEach(kennung, id: \.self) { entry in
+                 if let wea = weaFuerKennung(entry) {
+                 Text("WEA: \(wea) – \(entry)")
+                 } else {
+                 Text("Keine WEA gefunden für \(entry)")
+                 }
+                 }
+                 }*/
+            }
+            VStack{
+                let alleWEA = ["T12", "T13", "K16", "K17", "K18"]
+                HStack(spacing: 20) {
+                    ForEach(alleWEA, id: \.self) { wea in
+                        VStack (spacing: 30){
+                            Text(wea)
+                                .frame(width: 40, height: 20)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(5)
+                            
+                            // Platzhalter für die Lampe (später)
+                            Circle()
+                                .fill(kennung.contains { entry in
+                                    weaFuerKennung(entry) == wea
+                                } ? Color.red : Color.green)
+                                .frame(width: 20, height: 20)
+                        }
+                    }
+                }
+            }
         }
         .padding()
+        
     }
+    
 }
 
 #Preview {

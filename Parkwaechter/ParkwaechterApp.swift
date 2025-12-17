@@ -13,5 +13,6 @@ struct ParkwaechterApp: App {
         WindowGroup {
             ContentView()
         }
+        .defaultSize(width: 800, height: 800)
     }
 }
