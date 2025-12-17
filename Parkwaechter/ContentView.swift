@@ -20,6 +20,14 @@ struct ContentView: View {
     @State private var gemarkung = ""
     @State private var flur = ""
     @State private var bezeichnung = ""
+
+    private let dateFormatter: DateFormatter = {
+           let formatter = DateFormatter()
+           formatter.dateStyle = .medium       // z. B. 17.12.2025
+           formatter.timeStyle = .short        // z. B. 14:30
+           formatter.timeZone = TimeZone.current  // lokale Zeitzone erzwingen
+           return formatter
+       }()
     
     let gemarkungen = Array(Set(abschaltRegeln.map({$0.gemarkung}))).sorted()
     let fluren = Array(Set(abschaltRegeln.map({$0.flur}))).sorted()
@@ -64,41 +72,13 @@ struct ContentView: View {
                             Spacer()
                         }
                     }
-                    GridRow{
-                        Text("Datum:")
-                            .frame(maxWidth: 100,alignment: .leading)
-                        HStack {
-                            DatePicker(
-                                "",
-                                selection: $date,
-                                displayedComponents: [.date]
-                            )
-                            .datePickerStyle(.compact) // oder .graphical
-                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
-                            
-                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
-                        }
-                    }
-                   GridRow{
-                       Text("Uhrzeit:")
-                           .frame(maxWidth: 100,alignment: .leading)
-                       HStack {
-                           DatePicker(
-                            "",
-                            selection: $date,
-                            displayedComponents: [.hourAndMinute]
-                           )
-                           .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
-                           
-                           Spacer() // schiebt den Rest nach rechts, Picker bleibt links
-                       }
-                    }
                 }
                 HStack{
                     Button("Hinzufügen"){
                         let current_kennung = "\(gemarkung) \(flur) \(bezeichnung)"
                         kennung.append(current_kennung)
                     }
+                    .disabled(kennung.contains("\(gemarkung) \(flur) \(bezeichnung)"))
                     Button("Rückgängig"){
                         kennung.removeLast()
                     }
@@ -115,9 +95,48 @@ struct ContentView: View {
                             }
                     }
                 }
-                .frame(maxWidth: 250,maxHeight: 100, alignment: .leading)
+                .frame(maxWidth: 250,minHeight: 100,maxHeight: 100, alignment: .leading)
                 .background(Color.gray.opacity(0.2))
                 .mask(Rectangle().cornerRadius(15).frame(height: 100))
+                
+                
+                
+                Grid(horizontalSpacing: 15, verticalSpacing: 12){
+                    GridRow{
+                        Text("Uhrzeit:")
+                            .frame(maxWidth: 100,alignment: .leading)
+                        HStack {
+                            DatePicker(
+                                "",
+                                selection: $date,
+                                displayedComponents: [.hourAndMinute]
+                            )
+                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
+                            
+                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
+                        }
+                    }
+                    GridRow{
+                        Text("Datum:")
+                            .frame(maxWidth: 100,alignment: .leading)
+                        HStack {
+                            DatePicker(
+                                "",
+                                selection: $date,
+                                displayedComponents: [.date]
+                            )
+                            .datePickerStyle(.compact) // oder .graphical
+                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
+                            
+                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
+                        }
+                    }
+                }
+                Button("Speichern") {
+                    print("Date: \(dateFormatter.string(from: date))")
+                    print(kennung)
+                    //print("Time: \(dateFormatter.string(from: time))")
+                }
                 /* VStack(alignment: .leading, spacing: 0) {
                  ForEach(kennung, id: \.self) { entry in
                  if let wea = weaFuerKennung(entry) {
