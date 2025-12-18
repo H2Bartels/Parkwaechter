@@ -15,6 +15,7 @@ struct InputView: View
     @Binding var bezeichnung: String
     @Binding var kennung: [String]
     @Binding var date: Date
+    @Binding var abgeschalteteWEA: [String]
     var context: ModelContext
     
     
@@ -66,6 +67,7 @@ struct InputView: View
                     Button("Hinzufügen"){
                         let current_kennung = "\(gemarkung) \(flur) \(bezeichnung)"
                         kennung.append(current_kennung)
+                        abgeschalteteWEA = Array(abgeschalteteWEA+weaFuerKennung(current_kennung)).sorted()
                     }
                     .disabled(
                         kennung.contains("\(gemarkung) \(flur) \(bezeichnung)") ||
@@ -74,7 +76,13 @@ struct InputView: View
                         bezeichnung.isEmpty
                     )
                     Button("Rückgängig"){
-                        kennung.removeLast()
+                        let removedKennung = kennung.removeLast()
+                        let zuEntfernen = weaFuerKennung(removedKennung)
+                        for wea in zuEntfernen {
+                            if let index = abgeschalteteWEA.lastIndex(of: wea) {
+                                abgeschalteteWEA.remove(at: index)
+                            }
+                        }
                     }
                     .disabled(kennung.isEmpty)
                 }
@@ -127,7 +135,7 @@ struct InputView: View
                     }
                 }
                 Button("Speichern") {
-                    addDatapoint(date: date, time: date,relevantFlurstuecke: kennung, turnedOffWea: kennung)
+                    addDatapoint(date: date, time: date,relevantFlurstuecke: kennung, turnedOffWea: Array(Set(abgeschalteteWEA)).sorted())
                 }
                 /* VStack(alignment: .leading, spacing: 0) {
                  ForEach(kennung, id: \.self) { entry in
@@ -151,9 +159,8 @@ struct InputView: View
                             
                             // Platzhalter für die Lampe (später)
                             Circle()
-                                .fill(kennung.contains { entry in
-                                    weaFuerKennung(entry).contains(wea)
-                                } ? Color.red : Color.green)
+                                .fill(Set(abgeschalteteWEA).contains(wea)
+                                 ? Color.red : Color.green)
                                 .frame(width: 20, height: 20)
                         }
                     }

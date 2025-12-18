@@ -21,6 +21,7 @@ struct ContentView: View {
 
     @State private var kennung: [String] = []
     @State private var date = Date()
+    @State private var abgeschalteteWEA: [String] = []
 
     @State private var gemarkung = ""
     @State private var flur = ""
@@ -29,7 +30,7 @@ struct ContentView: View {
     var body: some View{
         TabView{
             Tab("Eingaben",systemImage: "square.and.pencil"){
-                InputView(gemarkung: $gemarkung, flur: $flur, bezeichnung: $bezeichnung, kennung: $kennung, date: $date, context: context)
+                InputView(gemarkung: $gemarkung, flur: $flur, bezeichnung: $bezeichnung, kennung: $kennung, date: $date,abgeschalteteWEA:$abgeschalteteWEA, context: context)
             }
             Tab("Protokoll",systemImage: "book"){
                 ProtocolView(datapoints: datapoints, context: context, dataSelection: $dataSelection, datapointsToDelete: $datapointsToDelete, showDeleteAlert: $showDeleteAlert, datapointsToEdit: $datapointsToEdit, showEditSheet: $showEditSheet)

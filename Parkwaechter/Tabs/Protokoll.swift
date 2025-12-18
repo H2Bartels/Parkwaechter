@@ -20,32 +20,41 @@ struct ProtocolView: View
     @Binding var showEditSheet: Bool
     
     var body: some View {
-        List(selection: $dataSelection){
-                ForEach(datapoints, id: \.id){ datapoint in
-                    Text( "\(datapoint.date.formatted(date: .numeric, time:.omitted)) | \(datapoint.time.formatted(date: .omitted, time:.shortened)) |\(datapoint.relevantFlurstuecke)|\(datapoint.turnedOffWea)"
-                    )
-                    .contextMenu {
-                        Button("Löschen") {
-                            // alle ausgewählten IDs durchgehen
-                            datapointsToDelete = datapoints.filter { dataSelection.contains($0.id) }
-                            showDeleteAlert = true
-                        }
-                        .disabled(dataSelection.isEmpty) // optional: Button nur aktiv, wenn etwas ausgewählt ist
-                        /*Button("Bearbeiten"){
-                            datapointsToEdit = datapoints.filter { dataSelection.contains($0.id) }
-                            showEditSheet = true
-                        }*/
-                    }
+            Table(datapoints, selection: $dataSelection) {
+                
+                TableColumn("Jahr") { dp in
+                    Text(dp.date.formatted(Date.FormatStyle().year()))
+                }
+                TableColumn("Datum") { dp in
+                    Text(dp.date.formatted(Date.FormatStyle().month(.defaultDigits).day(.defaultDigits)))
+                }
+                TableColumn("Uhrzeit") { dp in
+                    Text(dp.time.formatted(date: .omitted, time: .shortened))
+                }
+                TableColumn("Flurstücke") { dp in
+                    Text(dp.relevantFlurstuecke.joined(separator: ", "))
+                }
+                TableColumn("WEA") { dp in
+                    Text(dp.turnedOffWea.joined(separator: ", "))
                 }
             }
-            .padding()
-            .focusable()
-            .onDeleteCommand{
+            .contextMenu {
+                Button("Löschen") {
+                    datapointsToDelete = datapoints.filter { dataSelection.contains($0.id) }
+                    showDeleteAlert = true
+                }
+                .disabled(dataSelection.isEmpty)
+                /*Button("Bearbeiten") {
+                    datapointsToEdit = datapoints.filter { dataSelection.contains($0.id) }
+                    showEditSheet = true
+                }*/
+            }
+            .onDeleteCommand {
                 datapointsToDelete = datapoints.filter { dataSelection.contains($0.id) }
                 showDeleteAlert = true
             }
             .alert("Datapoints löschen?", isPresented: $showDeleteAlert, actions: {
-                Button("Abbrechen", role: .cancel) { }
+                Button("Abbrechen", role: .cancel) {}
                 Button("Löschen", role: .destructive) {
                     for dp in datapointsToDelete {
                         deleteDatapoint(dp)
@@ -74,7 +83,7 @@ struct ProtocolView: View
                         Button("Abbrechen") { showEditSheet = false }
                         Button("Speichern") {
                             for dp in datapointsToEdit {
-                                context.insert(dp) // oder einfach Context speichert Änderungen automatisch
+                                context.insert(dp)
                             }
                             showEditSheet = false
                             datapointsToEdit.removeAll()
@@ -83,9 +92,7 @@ struct ProtocolView: View
                     .padding()
                 }
                 .frame(width: 400, height: 300)
-                
             }
-            
         }
         
         func deleteDatapoint(_ datapoint: Datapoint){
