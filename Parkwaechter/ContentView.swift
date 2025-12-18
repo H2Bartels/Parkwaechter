@@ -6,174 +6,38 @@
 //
 
 import SwiftUI
-
-
+import SwiftData
 
 struct ContentView: View {
-    /*@State private var gemarkung = "Option 1"
-    @State private var flur = "Option 1"
-    @State private var flurstueck = "Option 1"
-    */
+    @Environment(\.modelContext) private var context
+    @Query private var datapoints: [Datapoint]
+    @State private var dataSelection = Set<Datapoint.ID>()
+    //delete
+    @State private var showDeleteAlert = false
+    @State private var datapointsToDelete: [Datapoint] = []
+    //edit
+    @State private var showEditSheet = false
+    @State private var datapointsToEdit: [Datapoint] = []
+
     @State private var kennung: [String] = []
     @State private var date = Date()
 
     @State private var gemarkung = ""
     @State private var flur = ""
     @State private var bezeichnung = ""
-
-    private let dateFormatter: DateFormatter = {
-           let formatter = DateFormatter()
-           formatter.dateStyle = .medium       // z. B. 17.12.2025
-           formatter.timeStyle = .short        // z. B. 14:30
-           formatter.timeZone = TimeZone.current  // lokale Zeitzone erzwingen
-           return formatter
-       }()
     
-    let gemarkungen = Array(Set(abschaltRegeln.map({$0.gemarkung}))).sorted()
-    let fluren = Array(Set(abschaltRegeln.map({$0.flur}))).sorted()
-    let bezeichnungen = Array(Set(abschaltRegeln.map({$0.bezeichnung}))).sorted()
-    
-
-    
-    var body: some View {
-        HStack(alignment: .top, spacing: 10){
-            VStack(alignment: .leading,spacing: 20){
-                Grid(horizontalSpacing: 15, verticalSpacing: 12) {
-                    GridRow {
-                        Text("Gemarkung:")
-                            .frame(maxWidth: 100,alignment: .leading)
-                        HStack{
-                            Picker("", selection: $gemarkung) {
-                                ForEach(gemarkungen, id: \.self) { Text($0) }
-                            }
-                            .pickerStyle(.menu)
-                            Spacer()
-                        }
-                    }
-                    GridRow {
-                        Text("Flur:")
-                            .frame(maxWidth: 100, alignment: .leading)
-                        HStack{
-                            Picker("", selection: $flur) {
-                                ForEach( gefilterteFluren(gemarkung: gemarkung, bezeichnung: bezeichnung), id: \.self) { Text($0) }
-                            }
-                            .pickerStyle(.menu)
-                            Spacer()
-                        }
-                    }
-                    GridRow {
-                        Text("Flurstück:")
-                            .frame(maxWidth: 100,alignment: .leading)
-                        HStack{
-                            Picker("", selection: $bezeichnung) {
-                                ForEach(gefilterteBezeichnungen(gemarkung: gemarkung, flur: flur), id: \.self) { Text($0) }
-                            }
-                            .pickerStyle(.menu)
-                            Spacer()
-                        }
-                    }
-                }
-                HStack{
-                    Button("Hinzufügen"){
-                        let current_kennung = "\(gemarkung) \(flur) \(bezeichnung)"
-                        kennung.append(current_kennung)
-                    }
-                    .disabled(kennung.contains("\(gemarkung) \(flur) \(bezeichnung)"))
-                    Button("Rückgängig"){
-                        kennung.removeLast()
-                    }
-                    .disabled(kennung.isEmpty)
-                }
-                .padding(.top,10)
-                Text("Ausgewählte Flurstücke:")
-                ScrollView{
-                    VStack(alignment: .leading, spacing: 0){
-                        ForEach(Array(kennung.enumerated()), id: \.1) { index, entry in
-                                Text(entry)
-                                    .padding(.leading, 15)
-                                    .padding(.top, index == 0 ? 5 : 0)
-                            }
-                    }
-                }
-                .frame(maxWidth: 250,minHeight: 100,maxHeight: 100, alignment: .leading)
-                .background(Color.gray.opacity(0.2))
-                .mask(Rectangle().cornerRadius(15).frame(height: 100))
-                
-                
-                
-                Grid(horizontalSpacing: 15, verticalSpacing: 12){
-                    GridRow{
-                        Text("Uhrzeit:")
-                            .frame(maxWidth: 100,alignment: .leading)
-                        HStack {
-                            DatePicker(
-                                "",
-                                selection: $date,
-                                displayedComponents: [.hourAndMinute]
-                            )
-                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
-                            
-                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
-                        }
-                    }
-                    GridRow{
-                        Text("Datum:")
-                            .frame(maxWidth: 100,alignment: .leading)
-                        HStack {
-                            DatePicker(
-                                "",
-                                selection: $date,
-                                displayedComponents: [.date]
-                            )
-                            .datePickerStyle(.compact) // oder .graphical
-                            .frame(width: 250, alignment: .leading) // unbedingt alignment setzen
-                            
-                            Spacer() // schiebt den Rest nach rechts, Picker bleibt links
-                        }
-                    }
-                }
-                Button("Speichern") {
-                    print("Date: \(dateFormatter.string(from: date))")
-                    print(kennung)
-                    //print("Time: \(dateFormatter.string(from: time))")
-                }
-                /* VStack(alignment: .leading, spacing: 0) {
-                 ForEach(kennung, id: \.self) { entry in
-                 if let wea = weaFuerKennung(entry) {
-                 Text("WEA: \(wea) – \(entry)")
-                 } else {
-                 Text("Keine WEA gefunden für \(entry)")
-                 }
-                 }
-                 }*/
+    var body: some View{
+        TabView{
+            Tab("Eingaben",systemImage: "square.and.pencil"){
+                InputView(gemarkung: $gemarkung, flur: $flur, bezeichnung: $bezeichnung, kennung: $kennung, date: $date, context: context)
             }
-            VStack{
-                let alleWEA = ["T12", "T13", "K16", "K17", "K18"]
-                HStack(spacing: 20) {
-                    ForEach(alleWEA, id: \.self) { wea in
-                        VStack (spacing: 30){
-                            Text(wea)
-                                .frame(width: 40, height: 20)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(5)
-                            
-                            // Platzhalter für die Lampe (später)
-                            Circle()
-                                .fill(kennung.contains { entry in
-                                    weaFuerKennung(entry).contains(wea)
-                                } ? Color.red : Color.green)
-                                .frame(width: 20, height: 20)
-                        }
-                    }
-                }
+            Tab("Protokoll",systemImage: "book"){
+                ProtocolView(datapoints: datapoints, context: context, dataSelection: $dataSelection, datapointsToDelete: $datapointsToDelete, showDeleteAlert: $showDeleteAlert, datapointsToEdit: $datapointsToEdit, showEditSheet: $showEditSheet)
             }
         }
-        .padding()
-        
     }
-    
 }
-
 #Preview {
     ContentView()
+        //.modelContainer(for: Datapoint.self, inMemory: true)
 }
