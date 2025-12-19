@@ -14,6 +14,8 @@ struct ParkwaechterApp: App {
             ContentView()
         }
         .modelContainer(for:Datapoint.self)
+        .windowResizability(.contentSize)
+
         //.defaultSize(width: 800, height: 800)
     }
 }

@@ -7,6 +7,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import MapKit
 
 struct InputView: View
 {
@@ -17,6 +18,7 @@ struct InputView: View
     @Binding var date: Date
     @Binding var abgeschalteteWEA: [String]
     var context: ModelContext
+    @Binding var mapCameraPosition: MapCameraPosition
     
     
     let gemarkungen = Array(Set(abschaltRegeln.map({$0.gemarkung}))).sorted()
@@ -26,7 +28,7 @@ struct InputView: View
 
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10){
+        HStack(alignment: .top, spacing: 0){
             VStack(alignment: .leading,spacing: 20){
                 Grid(horizontalSpacing: 15, verticalSpacing: 12) {
                     GridRow {
@@ -146,8 +148,12 @@ struct InputView: View
                  }
                  }
                  }*/
-            }
+            }.frame(width: 250, height: 450, alignment:.center)
             VStack{
+                
+                MapView(mapCameraPosition:$mapCameraPosition)
+                    .padding()
+                
                 let alleWEA = ["T12", "T13", "K16", "K17", "K18"]
                 HStack(spacing: 20) {
                     ForEach(alleWEA, id: \.self) { wea in
@@ -165,9 +171,12 @@ struct InputView: View
                         }
                     }
                 }
+            
             }
+            .frame(width: 250, height: 450, alignment: .top)
+            .padding(.top, 10)
         }
-        .padding()
+        //.padding()
     }
     
     func addDatapoint(date: Date,time:Date,relevantFlurstuecke: [String],turnedOffWea:[String]){
