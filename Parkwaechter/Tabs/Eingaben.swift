@@ -149,10 +149,23 @@ struct InputView: View
                  }
                  }*/
             }.frame(width: 250, height: 450, alignment:.center)
-            VStack{
+            VStack(alignment: .leading){
                 
                 MapView(mapCameraPosition:$mapCameraPosition)
-                    .padding()
+                   
+                Button{
+                    mapCameraPosition = .region(
+                        MKCoordinateRegion(
+                            center: CLLocationCoordinate2D(latitude: 54.149686, longitude: 10.924739), // Schlag hinter Hof Körnick
+                            span: MKCoordinateSpan(latitudeDelta: 0.009, longitudeDelta: 0.009)// Zoom-Level
+                        )
+                    )
+                } label: {
+                    Label("Zentrieren", systemImage: "location.north.line")
+                }
+                Spacer()
+                .padding(.top)
+                .padding(.horizontal)
                 
                 let alleWEA = ["T12", "T13", "K16", "K17", "K18"]
                 HStack(spacing: 20) {
@@ -173,8 +186,7 @@ struct InputView: View
                 }
             
             }
-            .frame(width: 250, height: 450, alignment: .top)
-            .padding(.top, 10)
+            .frame(width: 250, height: 400, alignment: .top)
         }
         //.padding()
     }
