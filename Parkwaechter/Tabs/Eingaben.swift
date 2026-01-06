@@ -150,9 +150,15 @@ struct InputView: View
                  }*/
             }.frame(width: 250, height: 450, alignment:.center)
             VStack(alignment: .leading){
-                
-                MapView(mapCameraPosition:$mapCameraPosition)
-                   
+                let previewKennung =
+                    gemarkung.isEmpty || flur.isEmpty || bezeichnung.isEmpty
+                    ? nil
+                    : "\(gemarkung) \(flur) \(bezeichnung)"
+
+                MapView(mapCameraPosition:$mapCameraPosition, kennung: $kennung, previewKennung: previewKennung)
+                    .frame(width: 280, height: 270)
+                    .padding(.top)
+
                 Button{
                     mapCameraPosition = .region(
                         MKCoordinateRegion(
@@ -163,14 +169,13 @@ struct InputView: View
                 } label: {
                     Label("Zentrieren", systemImage: "location.north.line")
                 }
-                Spacer()
-                .padding(.top)
-                .padding(.horizontal)
+                .padding(.bottom,20)
+                //.padding(.horizontal)
                 
                 let alleWEA = ["T12", "T13", "K16", "K17", "K18"]
                 HStack(spacing: 20) {
                     ForEach(alleWEA, id: \.self) { wea in
-                        VStack (spacing: 30){
+                        VStack (spacing: 15){
                             Text(wea)
                                 .frame(width: 40, height: 20)
                                 .background(Color.gray.opacity(0.2))
