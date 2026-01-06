@@ -14,6 +14,7 @@ struct MapView: View {
     @Binding var kennung: [String]
 
     private let flurstuecke: [FlurstueckPolygon] = loadFlurstueckeGeoJSON(named: "Baltic_Wind_Flurstuecke")
+    private let weaArray = loadWEA(fromGeoJSON: "Baltic_Wind_WEA")
     let previewKennung: String?
     
     var body: some View {
@@ -24,6 +25,7 @@ struct MapView: View {
                                let key = "\(flurstueck.gemarkung) \(flurstueck.flur) \(flurstueck.bezeichnung)"
                                return flurstueck.polygons.map { ($0, key) }
                            }
+            
 
            // Polygone rendern
             ForEach(Array(polygonsToDraw.enumerated()), id: \.0) { _, poly in
@@ -51,6 +53,12 @@ struct MapView: View {
                         
                 }
             }
+            //WEAs
+            ForEach(weaArray) { wea in
+                Annotation("", coordinate: wea.coordinate, anchor: .center){
+                    WEAAnnotationView(wea:wea)
+                }
+            }
         }
         .mapStyle(.imagery)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,6 +66,43 @@ struct MapView: View {
     }
 }
 
+struct WEAAnnotationView: View {
+    let wea: WEA // dein Modell mit Name, Hersteller, Typ, etc.
+    
+    @State private var hovering = false
+    
+    var body: some View {
+        ZStack {
+            Image("wea_icon")
+                .resizable()
+                .foregroundColor(.white)
+                .frame(width: 50, height: 70)
+                .onHover { inside in
+                    hovering = inside
+                }
+            
+            if hovering {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Name: \(wea.name)")
+                    Text("Hersteller: \(wea.hersteller)")
+                    Text("Typ: \(wea.typ)")
+                    Text("Nennleistung: \(String(format: "%.0f",wea.nennleistung)) kW")
+                    Text("Nabenhöhe: \(String(format: "%.1f",wea.nabenhoehe))m")
+                    Text("Rotordurchmesser: \(String(format: "%.1f",wea.rotordurchmesser))m")
+                }
+                .font(.caption2) // kleiner Schriftgrad
+                    .padding(6)
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(6)
+                    .offset(x: 60, y: -20)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(width: 120)
+
+            }
+        }
+    }
+}
 
 struct FlurstueckPolygon: Identifiable {
     let id = UUID()
@@ -94,6 +139,17 @@ struct FlurstueckPolygon: Identifiable {
             longitude: (lons.min()! + lons.max()!) / 2
         )
     }
+}
+
+struct WEA: Identifiable {
+    let id = UUID()
+    let name: String
+    let hersteller: String
+    let typ: String
+    let nennleistung: Double
+    let nabenhoehe: Double
+    let rotordurchmesser: Double
+    let coordinate: CLLocationCoordinate2D
 }
 
 func loadFlurstueckeGeoJSON(named fileName: String) -> [FlurstueckPolygon] {
@@ -156,6 +212,79 @@ func loadFlurstueckeGeoJSON(named fileName: String) -> [FlurstueckPolygon] {
 
     } catch {
         print("Fehler beim Parsen: \(error)")
+        return []
+    }
+}
+func loadWEA(fromGeoJSON fileName: String) -> [WEA] {
+    guard let url = Bundle.main.url(forResource: fileName, withExtension: "geojson") else {
+        print("Datei \(fileName).geojson nicht gefunden")
+        return []
+    }
+
+    do {
+        let data = try Data(contentsOf: url)
+        let decoder = MKGeoJSONDecoder()
+        let geoObjects = try decoder.decode(data)
+        var weaList: [WEA] = []
+
+        for object in geoObjects {
+            guard let feature = object as? MKGeoJSONFeature else { continue }
+
+            // Properties parsen
+            var name = "unbekannt"
+            var hersteller = ""
+            var typ = ""
+            var nennleistung: Double = 0
+            var nabenhoehe: Double = 0
+            var rotordurchmesser: Double = 0
+
+            if let jsonData = feature.properties,
+               let dict = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] {
+
+                name = dict["Name"] as? String ?? name
+                hersteller = dict["Herstellerin"] as? String ?? ""
+                typ = dict["Typ"] as? String ?? ""
+                nennleistung = dict["Nennleistung (kW)"] as? Double ?? 0
+                nabenhoehe = dict["Nabenhöhe (m)"] as? Double ?? 0
+                rotordurchmesser = dict["Rotordurchmesser (m)"] as? Double ?? 0
+            }
+
+            // Koordinaten extrahieren (nur Point)
+            for geometry in feature.geometry {
+                if let point = geometry as? MKPointAnnotation {
+                    let wea = WEA(
+                        name: name,
+                        hersteller: hersteller,
+                        typ: typ,
+                        nennleistung: nennleistung,
+                        nabenhoehe: nabenhoehe,
+                        rotordurchmesser: rotordurchmesser,
+                        coordinate: point.coordinate
+                    )
+                    weaList.append(wea)
+                }
+                // GeoJSON MKPoint wird als MKMultiPoint mit 1 Punkt geliefert
+                else if let mp = geometry as? MKMultiPoint {
+                    if mp.pointCount > 0 {
+                        let coord = mp.points()[0].coordinate
+                        let wea = WEA(
+                            name: name,
+                            hersteller: hersteller,
+                            typ: typ,
+                            nennleistung: nennleistung,
+                            nabenhoehe: nabenhoehe,
+                            rotordurchmesser: rotordurchmesser,
+                            coordinate: coord
+                        )
+                        weaList.append(wea)
+                    }
+                }
+            }
+        }
+
+        return weaList
+    } catch {
+        print("Fehler beim Parsen der GeoJSON: \(error)")
         return []
     }
 }
