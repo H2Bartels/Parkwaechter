@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "Baltic_Wind_WEA",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 0, "Name": "T12", "Herstellerin": "Nordex", "Typ": "N133/4800", "Nennleistung (kW)": 4800, "Nabenhöhe (m)": 125.4, "Rotordurchmesser (m)": 133.2 }, "geometry": { "type": "Point", "coordinates": [ 10.911127918013449, 54.145851562592917 ] } },
+{ "type": "Feature", "properties": { "fid": 1, "Name": "T13", "Herstellerin": "Nordex", "Typ": "N133/4800", "Nennleistung (kW)": 4800, "Nabenhöhe (m)": 126.4, "Rotordurchmesser (m)": 133.2 }, "geometry": { "type": "Point", "coordinates": [ 10.913389291540089, 54.143091887304465 ] } },
+{ "type": "Feature", "properties": { "fid": 2, "Name": "K16", "Herstellerin": "Nordex", "Typ": "N133/4800", "Nennleistung (kW)": 4800, "Nabenhöhe (m)": 82.5, "Rotordurchmesser (m)": 133.2 }, "geometry": { "type": "Point", "coordinates": [ 10.917277765425334, 54.147057205626268 ] } },
+{ "type": "Feature", "properties": { "fid": 3, "Name": "K17", "Herstellerin": "Nordex", "Typ": "N133/4800", "Nennleistung (kW)": 4800, "Nabenhöhe (m)": 82.5, "Rotordurchmesser (m)": 133.2 }, "geometry": { "type": "Point", "coordinates": [ 10.922014303798006, 54.147826659012921 ] } },
+{ "type": "Feature", "properties": { "fid": 4, "Name": "K18", "Herstellerin": "Nordex", "Typ": "N133/4800", "Nennleistung (kW)": 4800, "Nabenhöhe (m)": 82.5, "Rotordurchmesser (m)": 133.2 }, "geometry": { "type": "Point", "coordinates": [ 10.925385089124068, 54.14984931283653 ] } }
+]
+}
